@@ -1,1 +1,2 @@
-./TorchLearningNote/*
+TorchLearningNote/.*
+playground/*
