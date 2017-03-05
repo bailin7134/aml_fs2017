@@ -11,13 +11,9 @@ function train_logistic_sgd(data, labels)
     local p = data:size(1)  -- size of the characters
     local n = data:size(2)  -- number of train samples
     local theta = torch.FloatTensor(1,p):fill(0)  -- initialize the value of theta
-    -- local data_train = data:sub(1,p-1,1,n)
-    -- the sigmoid function
-    -- h_theta = 1/(1+exp(-theta:transpose(1,2)*x))
-    -- train the data
-    -- err = labels - data:transpose(1,2)*theta  -- error of each train data
     for i = 1, n, 1 do
-        theta = theta + data[{{}, {i}}] * alpha * (labels[i] - theta * data[{{}, {i}}])
+        -- theta = theta + data[{{}, {i}}] * alpha * (labels[i] - theta * data[{{}, {i}}])
+        theta = theta + data[{{}, {i}}] * alpha * (labels[i] - torch.FloatTensor(1,1):fill(1):cdiv(1+torch.exp(-theta * data[{{}, {i}}])))
     end
     return theta
 
