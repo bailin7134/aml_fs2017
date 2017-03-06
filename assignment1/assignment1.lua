@@ -2,18 +2,36 @@
 require 'hdf5'
 require 'gnuplot'
 
+function sigmoid(z)
+    -- 1/1+exp(-z)
+    g = torch.FloatTensor(1,1):fill(1):cdiv(1.0+torch.exp(-z));
+    return g
+end
 
 function train_logistic_sgd(data, labels)
 
     -- learning rate
-    local alpha = torch.FloatTensor(1,1):fill(0.01)
+    local alpha = torch.FloatTensor(1,1):fill(0.00005)
 
-    local p = data:size(1)  -- size of the characters
+    local p = data:size(1)  -- size of the features
     local n = data:size(2)  -- number of train samples
+    -- print("data size", p, n)
     local theta = torch.FloatTensor(1,p):fill(0)  -- initialize the value of theta
-    for i = 1, n, 1 do
-        -- theta = theta + data[{{}, {i}}] * alpha * (labels[i] - theta * data[{{}, {i}}])
-        theta = theta + data[{{}, {i}}] * alpha * (labels[i] - torch.FloatTensor(1,1):fill(1):cdiv(1+torch.exp(-theta * data[{{}, {i}}])))
+    -- local gradJ = torch.FloatTensor(1,p):fill(0)  -- initialize the value of theta
+    for k = 1, n, 1 do
+        --print(data[{{}, {4000}}])
+        i = math.random(1,n)
+        gradJ = data[{{}, {i}}] * (labels[i] - sigmoid(theta * data[{{}, {i}}])):view(1, 1)
+        --print("=", theta * data[{{}, {i}}])
+        --print("sigmoid=", sigmoid(theta * data[{{}, {i}}]))
+        -- print("theta * data[{{}, {i}}] = ", data[{{}, {i}}] * (labels[i] - sigmoid(theta * data[{{}, {i}}])):view(1, 1))
+        -- print("data[{{}, {i}}] type", data[{{}, {i}}]:type())
+        -- print("data[{{}, {i}}] size", data[{{}, {i}}]:size())
+        -- print("gradJ type", gradJ:type())
+        -- print("gradJ size", gradJ:size())
+        theta = theta + gradJ * alpha:view(1, 1)
+        --print(data[{{}, {i}}])
+        --theta = theta_new
     end
     return theta
 
@@ -30,7 +48,10 @@ n = train_feats:size(1)
 p = train_feats:size(4)
 train_feats = torch.reshape(train_feats, n,p)
 
+print("data size 1= ", train_feats:size(1), train_feats:size(2))
+
 data = torch.cat(train_feats, torch.FloatTensor(n,1):fill(1),2):t()
+print("data size 2= ", data:size(1), data:size(2))
 
 theta = train_logistic_sgd(data, train_labels)
 
