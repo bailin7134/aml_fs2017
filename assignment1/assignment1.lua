@@ -71,6 +71,14 @@ gnuplot.plot(precision, recall)
 gnuplot.xlabel('recall')
 gnuplot.ylabel('precision')
 gnuplot.plotflush()
+
+tpr = recall
+fpr = torch.cdiv(recall, precision)-recall
+gnuplot.pngfigure('ROC.png')
+gnuplot.plot(fpr, tpr)
+gnuplot.xlabel('false positive rate')
+gnuplot.ylabel('true positive rate')
+gnuplot.plotflush()
 print(string.format('average precision: %.2f', ap*100))
 
 

@@ -1,2 +1,4 @@
 TorchLearningNote/.*
 playground/*
+*/*.png
+*/.*
