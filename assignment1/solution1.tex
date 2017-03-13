@@ -1,0 +1,130 @@
+% --------------------------------------------------------------
+% This is all preamble stuff that you don't have to worry about.
+% Head down to where it says "Start here"
+% --------------------------------------------------------------
+
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{color}
+\usepackage{tikz, pgfplots}
+\usepackage{graphicx}
+\usepackage{epstopdf} %converting to PDF
+\usepackage{subcaption}
+\usepackage{listings}
+
+\makeatletter
+
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+	{-3.5ex \@plus -1ex \@minus -.2ex}%
+	{2.3ex \@plus.2ex}%
+	{\normalfont\large\bfseries}}% from \Large
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+	{-3.25ex\@plus -1ex \@minus -.2ex}%
+	{1.5ex \@plus .2ex}%
+	{\normalfont\large\bfseries}}% from \large
+\makeatother
+
+\begin{document}
+	
+	% --------------------------------------------------------------
+	%                         Start here
+	% --------------------------------------------------------------
+	
+	%\renewcommand{\qedsymbol}{\filledbox}
+	
+	\title{\textbf{Advanced Topics in Machine Learning Exercise \#{1}}\\
+	Universit{\"a}t Bern}%replace X with the appropriate number
+	\author{{Lin Bai, 09935404}} %replace with your name
+	
+	\maketitle
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%   question 1
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\section{Solution to question 1}
+	The object function and stochastic gradient descent update rule are\\
+	\\
+	$\ell(\theta) = \log L(\theta) = \sum_{i=1}^{m}y{(i)}\log h(x^{(i)})+(1-y^{(i)})\log (1-h(x^{(i)}))$\\
+	\\
+	\noindent
+	$\theta_j := \theta_j + \alpha(y^{(i)}-h_{\theta}(x^{(i)}))x_j^{(i)}$\\
+	\noindent
+	where
+	$h_{\theta} = \frac{1}{1+\exp(\theta^T x)}$
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%   question 2
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\section{Solution to question 2}
+	The code of stochastic gradient descent for logistic regression is listed below.\\
+	\lstset{language=R}
+	\lstset{frame=lines}
+	\lstset{caption={code of logistic regression using stochastic gradient descent}}
+	\lstset{label={lst:code_direct}}
+	\lstset{basicstyle=\footnotesize\ttfamily}
+	\begin{lstlisting}[breaklines=true]
+	function sigmoid(z)
+		-- 1/1+exp(-z)
+		g = torch.FloatTensor(1,1):fill(1):cdiv(1.0+torch.exp(-z))
+		return g
+	end
+	
+	function train_logistic_sgd(data, labels)
+		-- learning rate
+		local alpha = torch.FloatTensor(1,1):fill(0.00005)
+	
+		local p = data:size(1)  -- size of the features
+		local n = data:size(2)  -- number of train samples
+		-- initialize the value of theta
+		local theta = torch.FloatTensor(1,p):fill(0)
+	
+		for k = 1, n, 1 do
+			i = math.random(1,n)
+			gradJ = data[{{}, {i}}] * (labels[i] - sigmoid(theta * data[{{}, {i}}])):view(1, 1)
+			theta = theta + gradJ * alpha:view(1, 1)
+		end
+		return theta
+	end
+	\end{lstlisting}
+	\noindent
+	When learning rate $\alpha = 0.00005$, the average precision 92.45 is achieved.\\
+	\\
+	\noindent
+	The precision-recall plot is shown below\\
+	\begin{figure}[htpb]
+		\centering
+		\includegraphics[width=0.5\textwidth]{precision_recall.png}
+		\caption{precision recall plot}
+	\end{figure}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%   question 3
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\section{Solution to question 3}
+	\lstset{caption={roc curve plot}}
+	\begin{lstlisting}[breaklines=true]
+	tpr = recall
+	fpr = torch.cdiv(recall, precision)-recall
+	gnuplot.pngfigure('ROC.png')
+	gnuplot.plot(fpr, tpr)
+	gnuplot.xlabel('false positive rate')
+	gnuplot.ylabel('true positive rate')
+	\end{lstlisting}
+	\begin{figure}[htpb]
+		\centering
+		\includegraphics[width=0.5\textwidth]{ROC.png}
+		\caption{ROC plot}
+	\end{figure}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%   question 4
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	
+
+	
+	% --------------------------------------------------------------
+	%     You don't have to mess with anything below this line.
+	% --------------------------------------------------------------
+	
+\end{document}

@@ -1,4 +1,8 @@
 TorchLearningNote/.*
 playground/*
 */*.png
+*/*.log
+*/*.aux
+*/*.synctex.gz
+*/solution*.pdf
 */.*

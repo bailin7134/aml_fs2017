@@ -4,7 +4,7 @@ require 'gnuplot'
 
 function sigmoid(z)
     -- 1/1+exp(-z)
-    g = torch.FloatTensor(1,1):fill(1):cdiv(1.0+torch.exp(-z));
+    g = torch.FloatTensor(1,1):fill(1):cdiv(1.0+torch.exp(-z))
     return g
 end
 
