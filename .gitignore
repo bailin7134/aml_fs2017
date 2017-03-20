@@ -6,3 +6,4 @@ playground/*
 */*.synctex.gz
 */solution*.pdf
 */.*
+.ipynb_checkpoints/*
