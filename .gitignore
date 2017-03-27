@@ -1,8 +1,10 @@
-TorchLearningNote/.*
+TorchLearningNote/*.*
+TorchLearningNote/*.ipynb
 playground/*
 */*.png
 */*.log
 */*.aux
+*/*.zip
 */*.synctex.gz
 */solution*.pdf
 */.*

@@ -1,0 +1,135 @@
+% --------------------------------------------------------------
+% This is all preamble stuff that you don't have to worry about.
+% Head down to where it says "Start here"
+% --------------------------------------------------------------
+
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{color}
+\usepackage{tikz, pgfplots}
+\usepackage{graphicx}
+\usepackage{epstopdf} %converting to PDF
+\usepackage{subcaption}
+\usepackage{listings}
+
+\makeatletter
+
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+	{-3.5ex \@plus -1ex \@minus -.2ex}%
+	{2.3ex \@plus.2ex}%
+	{\normalfont\large\bfseries}}% from \Large
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+	{-3.25ex\@plus -1ex \@minus -.2ex}%
+	{1.5ex \@plus .2ex}%
+	{\normalfont\large\bfseries}}% from \large
+\makeatother
+
+\begin{document}
+	
+	% --------------------------------------------------------------
+	%                         Start here
+	% --------------------------------------------------------------
+	
+	%\renewcommand{\qedsymbol}{\filledbox}
+	
+	\title{\textbf{Advanced Topics in Machine Learning Exercise \#{2}}\\
+	Universit{\"a}t Bern}%replace X with the appropriate number
+	\author{{Lin Bai, 09935404}} %replace with your name
+	
+	\maketitle
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%   question 1
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\section{Solution to question 1}
+	\textbf{What is RELU?}\\
+	Rectified Linear Unit is defined by the activation function (blue line in figure below), where $z$ is the input to a neuron.\\
+	$$g(z) = max\{0,z\}$$
+	A smooth approximation to the rectifier is the analytic function.\\
+	$$f(x) = \ln(1+e^z)$$
+
+	\begin{figure}[htpb]
+		\centering
+		\includegraphics[width=0.7\textwidth]{ReLU.png}
+		\caption{ReLU function}
+	\end{figure}
+	\noindent
+	\textbf{Why do we use that in the network design? Do we have other choices to replace RELU?}\\
+	It can be used as a non-linearity. Compared to sigmoid function or similar activation functions, allow for faster and effective training of deep neural architecture on the large and complex datasets.\\
+	\\
+	Sigmoid and Tanh are both replacements of ReLU.\\
+	\\
+	\textbf{Why maximum likelihood is almost always the preferred approach to training sigmoid output units?}\\
+	When we use other loss functions, such as mean squared error, the loss can
+	saturate anytime $\sigma(z)$ saturates. The sigmoid activation function saturates to 0 when z becomes very negative and saturates to 1 when $z$ becomes very positive. The gradient can shrink too small to be useful for learning whenever this happens, whether the model has the correct answer or the incorrect answer. For this reason, maximum likelihood is almost always the preferred approach to training sigmoid output units.
+	\\
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%   question 2
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\section{Solution to question 2}
+	The code is listed below.
+	\lstset{language=[5.0]Lua}
+	\lstset{frame=lines}
+	\lstset{basicstyle=\footnotesize\ttfamily}
+	\begin{lstlisting}[breaklines=true]
+	require 'nngraph'
+	require 'torch'
+	require 'nn'   
+	require 'optim'
+	
+	-- define inputs
+	local x1 = torch.rand(5)
+	local x2 = torch.rand(20)
+	local x3 = torch.rand(2,15)
+	
+	-- model implementation, define an MLP
+	input1 = nn.Identity()()
+	h11 = nn.Linear(5,10)(input1)
+	h12 = nn.Linear(5,15)(input1)
+	h1 = nn.JoinTable(1)({h11,h12})
+	
+	input2 = nn.Identity()()
+	h21 = nn.Linear(25,11)(h1)
+	h22 = nn.Linear(20,12)(input2)
+	h2 = nn.JoinTable(1)({h21,h22})
+	
+	input3 = nn.Identity()()
+	layer3 = nn.Sequential()
+	layer3:add(nn.SplitTable(1))
+	layer3:add(nn.ParallelTable()
+	           :add(nn.Linear(15,9))
+	           :add(nn.Linear(15,14)))
+	h31, h32 = layer3(input3):split(2)
+	h33 = nn.JoinTable(1)({h31,h32})
+	h3 = nn.JoinTable(1)({h33,h2})
+	
+	mlp = nn.gModule({input1,input2,input3}, {h1,h2,h3})
+	
+	-- print the size of your outputs
+	outputs = mlp:forward({x1,x2,x3})
+	print(outputs[1]:size())
+	print(outputs[2]:size())
+	print(outputs[3]:size())
+	\end{lstlisting}
+	And the output is
+	\begin{lstlisting}[breaklines=true]
+	25
+	[torch.LongStorage of size 1]
+	
+	23
+	[torch.LongStorage of size 1]
+	
+	46
+	[torch.LongStorage of size 1]
+	
+	\end{lstlisting}	
+	
+
+	
+	% --------------------------------------------------------------
+	%     You don't have to mess with anything below this line.
+	% --------------------------------------------------------------
+	
+\end{document}
