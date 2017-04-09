@@ -9,3 +9,4 @@ playground/*
 */solution*.pdf
 */.*
 .ipynb_checkpoints/*
+*/*.h5
