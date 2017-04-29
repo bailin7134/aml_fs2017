@@ -37,3 +37,40 @@ print(resBlock:size())
 --resBlock:add(nn.CAddTable(true))
 --resBlock:forward(inputDouble)
 
+local function createResBlock(input)
+	-- local resBlock = nn.Sequential()
+	-- TODO implement resblock in this function
+	-- do not implement this separately
+	local cat = nn.Sequential()
+	cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
+	cat:add(nn.ReLU(true))
+	cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
+	-- concate block
+	local conBlock = nn.ConcatTable()
+	conBlock:add(nn.Identity())
+	conBlock:add(cat)
+	conBlock:add(nn.CAddTable())
+	--local conResult = conBlock:forward(input)
+	-- add block
+	--local addBlock = nn.CAddTable()({conBlock})
+	print(conBlock)
+	--local resBlock = addBlock:forward(conResult)
+	return conBlock
+end
+
+input2=torch.rand(1,1,3,3):double()
+local cat = nn.Sequential()
+cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
+cat:add(nn.ReLU(true))
+cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
+local conBlock = nn.ConcatTable()
+conBlock:add(nn.Identity())
+conBlock:add(cat)
+conBlock:add(nn.CAddTable())
+--local conResult = conBlock:forward(input)
+-- add block
+--local addBlock = nn.CAddTable()({conBlock})
+print(conBlock)
+--local resBlock = addBlock:forward(conResult)
+conBlock:forward(input2)
+print(conBlock.output)

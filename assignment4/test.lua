@@ -1,16 +1,18 @@
-require 'nngraph'
-require 'torch'
-require 'nn'   
-require 'optim'
+require"nn" 
+local i2w = {"ball","is","red","the"} 
+local w2i = {ball = 1, is = 2, red = 3, the = 4} 
+local ngram = 3 
+local nhid = 10 
+local nproj = (ngram-1) * nhid
+-- Bengio et al. 2003 for 3-grams: 
+local feedforward = nn.Sequential() 
+feedforward:add(nn.LookupTable(#i2w,nhid)) 
+feedforward:add(nn.View(nproj)) 
+feedforward:add(nn.Sigmoid()) 
+feedforward:add(nn.Linear(nproj,nhid)) 
+feedforward:add(nn.Sigmoid()) 
+feedforward:add(nn.Linear(nhid, #i2w))
 
-h1 = nn.Linear(20, 10)()
-h2 = nn.Linear(10, 1)(nn.Tanh()(nn.Linear(10, 10)(nn.Tanh()(h1))))
-mlp = nn.gModule({h1}, {h2})
-
-x = torch.rand(20)
-dx = torch.rand(1)
-mlp:updateOutput(x)
-mlp:updateGradInput(x, dx)
-mlp:accGradParameters(x, dx)
-
-graph.dot(mlp.fg, 'MLP')
+if arg[1] == "debug" then
+	print(feedforward)
+end

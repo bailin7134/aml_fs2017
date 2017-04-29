@@ -1,0 +1,16 @@
+Q1:
+
+Convolutional neural network (CNN, or ConvNet) is a type of feed-forward artificial neural network in which the connectivity pattern between its neurons is inspired by the organization of the animal visual cortex. 
+
+Advantages:
+The architecture of a CNN is designed to take advantage of the 2D structure of an input image (or other 2D input such as a speech signal). This is achieved with local connections and tied weights followed by some form of pooling which results in translation invariant features. Another benefit of CNNs is that they are easier to train and have many fewer parameters than fully connected networks with the same number of hidden units.
+
+Q2:
+
+Since in most machine learning problems, we do not have the required number of training samples or the model complexity is large we have to use regularization in order to avoid, or lessen the possibility, of over-fitting.
+
+examples:
+1. Dataset augmentation
+2. Early stopping
+3. Dropout layer
+4. Weight penalty L1 and L2

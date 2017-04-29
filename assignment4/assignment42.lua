@@ -7,7 +7,7 @@ require 'optim'
 local label1 = torch.rand(1,3,64,64)
 local label2 = torch.rand(1,3,64,64)
 -- TODO
-local function createResBlock(input)
+local function createResBlock()
 	-- local resBlock = nn.Sequential()
 	-- TODO implement resblock in this function
 	-- do not implement this separately
@@ -19,10 +19,15 @@ local function createResBlock(input)
 	local conBlock = nn.ConcatTable()
 	conBlock:add(nn.Identity())
 	conBlock:add(cat)
-	local conResult = conBlock:forward(input)
+	--local conResult = conBlock:forward(input)
 	-- add block
-	local addBlock = nn.CAddTable()
-	local resBlock = addBlock:forward(conResult)
+	--local addBlock = nn.CAddTable()({conBlock})
+	local resBlock = nn.Sequential()
+	resBlock:add(conBlock)
+	resBlock:add(nn.CAddTable())
+	if arg[1] == "debug" then
+		print(resBlock)
+	end
 	return resBlock
 end
 local model = nn.ParallelTable()
@@ -36,17 +41,19 @@ conv4:add(nn.SpatialConvolution(32, 3, 3, 3,1,1,1,1))
 
 -- TODO add shared conv1 layer to L1Net and L2Net
 L1Net:add(conv1)
-L2Net:add(conv1)
+L2Net = L1Net:clone('weight', 'bias', 'gradWeight', 'gradBias')
 -- TODO add ResBlock to L1Net and L2Net
-L1Net:add(createResBlock(L1Net))
-L2Net:add(createResBlock(L1Net))
+L1Net:add(createResBlock())
+L2Net:add(createResBlock())
 -- TODO add shared conv4 layer to L1Net and L2Net
 L1Net:add(conv4)
-L2Net:add(conv4)
+L2Net = L1Net:clone('weight', 'bias', 'gradWeight', 'gradBias')
 -- TODO add L1Net and L2Net to model
 model:add(L1Net)
 model:add(L2Net)
-print(model)
+if arg[1] == "debug" then
+	print(model)
+end
 
 -- define criterion
 criterion1 = nn.MSECriterion()
