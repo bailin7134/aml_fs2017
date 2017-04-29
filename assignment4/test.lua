@@ -1,0 +1,16 @@
+require 'nngraph'
+require 'torch'
+require 'nn'   
+require 'optim'
+
+h1 = nn.Linear(20, 10)()
+h2 = nn.Linear(10, 1)(nn.Tanh()(nn.Linear(10, 10)(nn.Tanh()(h1))))
+mlp = nn.gModule({h1}, {h2})
+
+x = torch.rand(20)
+dx = torch.rand(1)
+mlp:updateOutput(x)
+mlp:updateGradInput(x, dx)
+mlp:accGradParameters(x, dx)
+
+graph.dot(mlp.fg, 'MLP')
