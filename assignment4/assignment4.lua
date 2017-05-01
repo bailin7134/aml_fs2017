@@ -6,71 +6,91 @@ require 'optim'
 -- define labels
 local label1 = torch.rand(1,3,64,64)
 local label2 = torch.rand(1,3,64,64)
-
-input1=torch.rand(1,32,64,64):double()
-
-input = nn.Identity()()
-cat = nn.Sequential()
-cat:add(nn.SpatialConvolution(32, 32, 3, 3,1,1,1,1))
-cat:add(nn.ReLU(true))
-cat:add(nn.SpatialConvolution(32, 32, 3, 3,1,1,1,1))
---cat:forward(input)
---print(cat.output:size())
-
-conBlock = nn.ConcatTable()
-conBlock:add(nn.Identity())
-conBlock:add(cat)
-conResult = conBlock:forward(input1)
-
-addBlock = nn.CAddTable()
-resBlock = addBlock:forward(conResult)
-
---pred = conBlock:forward(input1)
-print(resBlock:size())
---test = nn.CAddTable()(pred)
---print(test:size())
---for i, k in ipairs(pred) do print(i, k) end
---output = resBlock(input)
---mlp = nn.gModule({input,input}, output)
---resBlock:forward(inputDouble)
--- print(resBlock.output:size())
---resBlock:add(nn.CAddTable(true))
---resBlock:forward(inputDouble)
-
-local function createResBlock(input)
+-- TODO
+local function createResBlock()
 	-- local resBlock = nn.Sequential()
 	-- TODO implement resblock in this function
 	-- do not implement this separately
 	local cat = nn.Sequential()
-	cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
+	cat:add(nn.SpatialConvolution(32, 32, 3, 3,1,1,1,1))
 	cat:add(nn.ReLU(true))
-	cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
+	cat:add(nn.SpatialConvolution(32, 32, 3, 3,1,1,1,1))
 	-- concate block
 	local conBlock = nn.ConcatTable()
 	conBlock:add(nn.Identity())
 	conBlock:add(cat)
-	conBlock:add(nn.CAddTable())
 	--local conResult = conBlock:forward(input)
 	-- add block
 	--local addBlock = nn.CAddTable()({conBlock})
-	print(conBlock)
-	--local resBlock = addBlock:forward(conResult)
-	return conBlock
+	local resBlock = nn.Sequential()
+	resBlock:add(conBlock)
+	resBlock:add(nn.CAddTable())
+	if arg[1] == "debug" then
+		print(resBlock)
+	end
+	return resBlock
+end
+local model = nn.ParallelTable()
+local L1Net = nn.Sequential()
+local L2Net = nn.Sequential()
+local conv1 = nn.Sequential()
+local conv4 = nn.Sequential()
+-- Define conv1 and conv4 layers
+conv1:add(nn.SpatialConvolution(3, 32, 3, 3,1,1,1,1))
+conv4:add(nn.SpatialConvolution(32, 3, 3, 3,1,1,1,1))
+
+-- TODO add shared conv1 layer to L1Net and L2Net
+L1Net:add(conv1)
+L2Net = L1Net:clone('weight', 'bias', 'gradWeight', 'gradBias')
+-- TODO add ResBlock to L1Net and L2Net
+L1Net:add(createResBlock())
+L2Net:add(createResBlock())
+-- TODO add shared conv4 layer to L1Net and L2Net
+L1Net:add(conv4)
+L2Net = L1Net:clone('weight', 'bias', 'gradWeight', 'gradBias')
+-- TODO add L1Net and L2Net to model
+model:add(L1Net)
+model:add(L2Net)
+if arg[1] == "debug" then
+	print(model)
 end
 
-input2=torch.rand(1,1,3,3):double()
-local cat = nn.Sequential()
-cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
-cat:add(nn.ReLU(true))
-cat:add(nn.SpatialConvolution(1, 1, 3, 3,1,1,1,1))
-local conBlock = nn.ConcatTable()
-conBlock:add(nn.Identity())
-conBlock:add(cat)
-conBlock:add(nn.CAddTable())
---local conResult = conBlock:forward(input)
--- add block
---local addBlock = nn.CAddTable()({conBlock})
-print(conBlock)
---local resBlock = addBlock:forward(conResult)
-conBlock:forward(input2)
-print(conBlock.output)
+-- define criterion
+criterion1 = nn.MSECriterion()
+criterion2 = nn.AbsCriterion()
+if model then
+   parameters,gradParameters = model:getParameters()
+end
+print '==> configuring optimizer'
+optimMethod = optim.adam
+local parameters, gradParameters = model:getParameters()
+feval = function(x)
+  model:zeroGradParameters()
+  local inputs1 = torch.rand(1,3,64,64)
+  local inputs2 = torch.rand(1,3,64,64)
+  outputs = model:forward({inputs1, inputs2}) 
+  err1 = criterion1:forward(outputs[1], label1)
+  err2 = criterion2:forward(outputs[2], label2)
+
+  local gradOutputs1   = criterion1:backward(outputs[1], label1)
+  local gradOutputs2   = criterion2:backward(outputs[2], label2)
+
+  model:backward({inputs1, inputs2}, {gradOutputs1, gradOutputs2})
+  err = err1 + err2
+  return err, gradParameters
+end
+-- run 10 iterations
+for iii=1,10 do
+	optim.adam(feval, parameters, optimState)
+	print(err)
+end
+-- Test whether parameters are shared, don't remove this part
+local m1 = nn.Sequential()
+m1:add(model.modules[1].modules[1])
+local m2 = nn.Sequential()
+m2:add(model.modules[2].modules[1])
+parameters1,gradParameters1 = m1:getParameters()
+parameters2,gradParameters2 = m2:getParameters()
+local diff = parameters1 - parameters2
+print(diff:min())
+print(diff:max())
